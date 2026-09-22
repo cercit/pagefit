@@ -1,0 +1,154 @@
+/* ============================================================
+   pagefit — defensive print CSS for headless Chromium.
+
+   Injected on top of whatever the page already ships. Everything
+   here exists to stop Chromium's greedy, single-pass paginator
+   from making the decisions it is bad at.
+   ============================================================ */
+
+@page {
+  size: var(--pk-paper, A4);
+  margin: var(--pk-margin, 22mm);
+}
+
+html {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+body {
+  background: #fff;
+  font-size: var(--pk-body, 10.5pt);
+  line-height: var(--pk-lead, 1.42);
+}
+
+/* Headings never end a page. Chromium cannot look back and fix an
+   orphaned title, so it must never create one. */
+h1, h2, h3, h4, h5, h6 {
+  break-after: avoid-page;
+  page-break-after: avoid;
+  break-inside: avoid;
+  orphans: 3;
+  widows: 3;
+}
+
+/* Keep a heading glued to the block that follows it. */
+h1 + *, h2 + *, h3 + *, h4 + * {
+  break-before: avoid-page;
+  page-break-before: avoid;
+}
+
+p, li, blockquote {
+  orphans: 2;
+  widows: 2;
+}
+
+/* Self-contained units are atomic: they move whole or not at all. */
+figure, img, svg, video, pre, blockquote,
+table, .card, .box, .callout, .panel, .tile, .metric,
+[class*="card"], [class*="callout"] {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Long tables may split, but their header must follow. */
+table { break-inside: auto; page-break-inside: auto; }
+thead { display: table-header-group; }
+tfoot { display: table-footer-group; }
+tr, th, td { break-inside: avoid; page-break-inside: avoid; }
+
+/* Images must never exceed the live area, or the engine pushes a
+   whole page rather than scaling. */
+img, svg, video, canvas {
+  max-width: 100%;
+  max-height: 88vh;
+  height: auto;
+}
+
+/* Screen furniture that has no business in a PDF. */
+nav, header nav, footer nav, aside,
+body > header, body > footer,
+.nav, .navbar, .sidebar, .menu, .toc-float,
+.cookie, .cookie-banner, .consent, .banner,
+.share, .social, .newsletter, .subscribe,
+.back-to-top, .scroll-top, .skip-link,
+button, [role="button"], .btn,
+iframe[src*="youtube"], iframe[src*="vimeo"],
+[aria-hidden="true"], [hidden], .no-print, .print-hide {
+  display: none !important;
+}
+
+/* Sticky/fixed chrome repeats on every page in print. Unstick it. */
+* {
+  position: static !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Scroll-reveal animations are the single biggest cause of blank pages.
+   The element starts at opacity:0 and is revealed by an IntersectionObserver
+   that never fires in a headless print, so the content is simply absent from
+   the paper. On paper nothing animates in, so force the settled state.
+   `display` is deliberately untouched, so the furniture rules above still
+   win for things that should genuinely be hidden. */
+*, *::before, *::after {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  filter: none !important;
+  clip-path: none !important;
+}
+
+/* Viewport-height sections become page-height voids in print. */
+[class*="hero"], [class*="section"], main, section, article, div {
+  min-height: 0 !important;
+  max-height: none !important;
+}
+
+/* Scroll containers clip their own content when printed. */
+[style*="overflow"], .scroll, .overflow-auto, .overflow-hidden {
+  overflow: visible !important;
+}
+
+/* Multi-column screen layouts read badly on a narrow sheet. */
+@media print {
+  .grid, .columns, [class*="grid-cols"], [class*="col-"] {
+    display: block !important;
+  }
+}
+
+/* Screen layouts reserve gutters for decorative rails, sticky sidebars and
+   wide-viewport centring. On a sheet that reads as a fat empty margin, so
+   containers are reset to the full live area. */
+body > *, main, article, section, .container, .wrapper, .content,
+[class*="container"], [class*="wrapper"], [class*="inner"] {
+  max-width: 100% !important;
+  width: auto !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  float: none !important;
+}
+
+/* Decorative rails, timelines and gradient washes drawn as pseudo-elements or
+   thin full-height blocks: ink with no information, and they defeat fill
+   measurement by marking every row of the page as used. */
+*::before, *::after {
+  border-left: 0 !important;
+  border-right: 0 !important;
+  background-image: none !important;
+}
+[class*="rail"], [class*="gradient"], [class*="glow"], [class*="blob"],
+[class*="decoration"], [class*="ornament"], [aria-hidden="true"] {
+  display: none !important;
+}
+
+/* Show the destination of links, since a PDF reader cannot hover. */
+a[href^="http"]::after {
+  content: " (" attr(href) ")";
+  font-size: 0.78em;
+  color: #666;
+  word-break: break-all;
+}
+a[href^="#"]::after, a[href^="mailto"]::after { content: ""; }
