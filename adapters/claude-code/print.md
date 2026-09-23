@@ -133,3 +133,13 @@ without asking the user first.
 pip install typst pymupdf
 python -m playwright install chromium
 ```
+
+## If `import typst` fails
+
+You are probably running a different Python from the one pagefit was installed
+into. AI agents and desktop apps often bundle their own. Install into the same
+Python that runs the command, then retry:
+
+    python -m pip install typst pymupdf
+
+Tell the user you installed it. Do not switch to another converter instead.

@@ -6,6 +6,8 @@ Most markdown-to-PDF tools render once and hand you the result. If a section lan
 
 A real example. A 26-page study document, hand-tuned, averaged 72% page fill with twelve pages under 88% — one was 8% full. Run through pagefit it came out at 17 pages and 96% mean fill, at full base type size.
 
+**Works with most AI coding agents.** It is a plain command-line tool, so any agent that can run a shell command can use it. Tested end to end with **Claude Code**, **Codex** and **Hermes Agent**. All three produced the identical PDF from the same test document. Instruction files for other agents are in [`adapters/`](#using-it-from-an-ai-coding-agent).
+
 ---
 
 ## The problem it solves
@@ -29,6 +31,12 @@ pagefit is cruder than that on purpose. It cannot reflow globally, because it si
 ```bash
 pip install typst pymupdf
 python -m playwright install chromium   # only if you need the web path
+```
+
+If `import typst` fails later, the thing running pagefit is using a different Python from the one you installed into. This happens a lot with AI agents and desktop apps that bundle their own. Install with that same Python:
+
+```bash
+python -m pip install typst pymupdf
 ```
 
 `typst` ships as a self-contained binary inside the wheel. No system libraries, no GTK, no admin rights. That is the reason it is used here instead of WeasyPrint, which needs Pango installed system-wide and will not work on a locked-down machine.
@@ -108,12 +116,18 @@ pagefit is a plain Python CLI, so anything that can run a shell command can driv
 | Platform | File | Status |
 |---|---|---|
 | Claude Code | `adapters/claude-code/print.md` → `.claude/agents/` | Tested |
+| Codex | `adapters/agents/AGENTS.md` → repo root | Tested |
+| Hermes Agent (desktop app) | `adapters/agents/AGENTS.md` → repo root | Tested |
 | Cursor | `adapters/cursor/pagefit.mdc` → `.cursor/rules/` | Untested |
 | GitHub Copilot | `adapters/copilot/copilot-instructions.md` → `.github/` | Untested |
-| Codex, OpenCode, Amp | `adapters/agents/AGENTS.md` | Untested |
+| OpenCode, Amp | `adapters/agents/AGENTS.md` → repo root | Untested |
 | Gemini CLI | `adapters/gemini/GEMINI.md` | Untested |
 
-**On "untested".** I use this daily from Claude Code, and that adapter is the one I can vouch for. The others are written against each platform's published instruction-file format, which I am confident is correct, but I have not personally run them. If you try one and it works, or does not, an issue saying so is genuinely useful.
+**How "tested" was checked.** Each agent got the same short test document and the same instruction: read the adapter file, make the PDF with pagefit, report the fill. I did not take their word for it. For each one I checked that the PDF actually existed, that Typst produced it (so the agent had not written its own converter), and I re-measured the fill myself. All three came out at 2 pages and 87% fill, with the text identical page for page.
+
+**On "untested".** Those files follow each platform's published instruction-file format, which I am confident is right, but I have not run them myself. If you try one, an issue saying whether it worked is genuinely useful.
+
+**One thing that tripped an agent up.** The Hermes desktop app runs its own copy of Python, not the one pagefit was installed into, so its first try failed with `No module named 'typst'`. It fixed that itself. A weaker agent might not, so the adapter files now say how to fix it.
 
 Nothing about the tool is platform-specific. If your agent is not listed, point it at the CLI and the README.
 

@@ -52,3 +52,13 @@ and offer to trim the content instead.
 
 Report the path, the page count and the mean fill. If a page is still sparse,
 say so rather than burying it.
+
+## If `import typst` fails
+
+You are probably running a different Python from the one pagefit was installed
+into. AI agents and desktop apps often bundle their own. Install into the same
+Python that runs the command, then retry:
+
+    python -m pip install typst pymupdf
+
+Tell the user you installed it. Do not switch to another converter instead.

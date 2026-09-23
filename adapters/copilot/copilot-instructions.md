@@ -22,3 +22,13 @@ behaves like a heading ends a page, tables under 12 rows stay whole.
 
 Every run prints a per-page fill report. Read it before saying the PDF is done,
 and report page count and mean fill. Never hand over a PDF you have not measured.
+
+## If `import typst` fails
+
+You are probably running a different Python from the one pagefit was installed
+into. AI agents and desktop apps often bundle their own. Install into the same
+Python that runs the command, then retry:
+
+    python -m pip install typst pymupdf
+
+Tell the user you installed it. Do not switch to another converter instead.
